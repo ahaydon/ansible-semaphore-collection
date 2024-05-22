@@ -1,0 +1,21 @@
+---
+- name: Deploy Semaphore
+  hosts: all
+
+  vars:
+    semaphore_user: semaphore
+
+  roles:
+    - role: ahaydon.podman.podman_user
+      podman_user_name: "{{ semaphore_user }}"
+      become: yes
+
+    - role: semaphore_podman
+      semaphore_podman_user: "{{ semaphore_user }}"
+      semaphore_podman_home: "{{ podman_user_home }}"
+      semaphore_podman_mariadb_root_passwd: Semaphore1234
+      semaphore_podman_db_passwd: Semaphore1234
+      semaphore_podman_admin_passwd: Semaphore1234
+      semaphore_podman_admin_email: adam.haydon@gmail.com
+      semaphore_podman_access_key_encryption: jAO5pP3A0ZGrSGm7vABgq/n3dZ40/zTwMjQikUXALPU=
+

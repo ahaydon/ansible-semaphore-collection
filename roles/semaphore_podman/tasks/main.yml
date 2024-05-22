@@ -1,0 +1,92 @@
+---
+- name: Create semaphore data directory
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ semaphore_podman_user }}"
+    group: "{{ semaphore_podman_group }}"
+    mode: "0777"
+  become: yes
+  loop:
+    - "{{ semaphore_podman_home }}/mariadb"
+
+- name: Run tasks as semaphore user
+  become: yes
+  become_user: "{{ semaphore_podman_user }}"
+  vars:
+    ansible_common_remote_group: "{{ semaphore_podman_group }}"
+  block:
+    - name: Create semaphore podman network
+      containers.podman.podman_network:
+        name: "{{ semaphore_podman_network }}"
+    
+    - name: Workaround for podman network version
+      ansible.builtin.lineinfile:
+        path: /home/{{ semaphore_podman_user }}/.config/cni/net.d/{{ semaphore_podman_network }}.conflist
+        regexp: '"cniVersion": "\d+\.\d+\.\d+"'
+        line: '   "cniVersion": "0.4.0",'
+
+- name: Create semaphore db container
+  ansible.builtin.include_role:
+    name: ahaydon.podman.podman_systemd
+  vars:
+    podman_systemd_name: "{{ semaphore_podman_name }}-db"
+    podman_systemd_image: docker.io/library/mariadb:{{ semaphore_podman_db_version }}
+    podman_systemd_user: "{{ semaphore_podman_user }}"
+    podman_systemd_readonly: yes
+    podman_systemd_network: "{{ semaphore_podman_network }}"
+    podman_systemd_environment:
+      MARIADB_ROOT_PASSWORD: "{{ semaphore_podman_mariadb_root_passwd }}"
+      MARIADB_DATABASE: semaphore
+      MARIADB_USER: semaphore
+      MARIADB_PASSWORD: "{{ semaphore_podman_db_passwd }}"
+    podman_systemd_volumes:
+      - "{{ semaphore_podman_home }}/mariadb:/var/lib/mysql"
+
+- name: Create semaphore web container
+  ansible.builtin.include_role:
+    name: ahaydon.podman.podman_systemd
+  vars:
+    podman_systemd_name: "{{ semaphore_podman_name }}-web"
+    podman_systemd_image: docker.io/semaphoreui/semaphore:{{ semaphore_podman_version }}
+    podman_systemd_user: "{{ semaphore_podman_user }}"
+    podman_systemd_network: "{{ semaphore_podman_network }}"
+    podman_systemd_environment:
+      SEMAPHORE_DB_DIALECT: mysql
+      SEMAPHORE_DB_HOST: "{{ semaphore_podman_name }}-db"
+      SEMAPHORE_DB_PORT: 3306
+      SEMAPHORE_DB: semaphore
+      SEMAPHORE_DB_USER: semaphore
+      SEMAPHORE_DB_PASS: "{{ semaphore_podman_db_passwd }}"
+      SEMAPHORE_ADMIN_PASSWORD: "{{ semaphore_podman_admin_passwd }}"
+      SEMAPHORE_ADMIN_NAME: admin
+      SEMAPHORE_ADMIN_EMAIL: "{{ semaphore_podman_admin_email }}"
+      SEMAPHORE_ADMIN: admin
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: "{{ semaphore_podman_access_key_encryption }}"
+    podman_systemd_ports:
+      - 4000:3000
+    podman_systemd_volumes:
+      - /etc/timezone:/etc/timezone
+      - /etc/localtime:/etc/localtime
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable semaphore service
+  ansible.builtin.systemd:
+    name: container-{{ semaphore_podman_name }}-{{ item }}.service
+    enabled: yes
+  become: yes
+  loop:
+    - db
+    - web
+
+- name: Start semaphore service
+  ansible.builtin.systemd:
+    name: container-{{ semaphore_podman_name }}-{{ item }}.service
+    state: started
+  become: yes
+  loop:
+    - db
+    - web
+

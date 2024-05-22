@@ -1,0 +1,81 @@
+---
+argument_specs:
+  main:
+    short_description: Main entrypoint for the semaphore_podman role
+    description:
+      - This is the main entrypoint for the C(semaphore_podman) role.
+    author: Adam Haydon
+    options:
+      semaphore_podman_home:
+        type: path
+        required: true
+        description:
+          - The path for the config and data.
+
+      semaphore_podman_mariadb_root_passwd:
+        type: str
+        required: true
+        description:
+          - The password for the database root user.
+        no_log: true
+  
+      semaphore_podman_db_passwd:
+        type: str
+        required: true
+        description:
+          - The password for the semaphore database user.
+        no_log: true
+  
+      semaphore_podman_name:
+        type: str
+        default: semaphore
+        description:
+          - Name of the container and service.
+  
+      semaphore_podman_version:
+        type: str
+        default: latest-rootless
+        description:
+          - The tag to use for the Semaphore container image.
+  
+      semaphore_podman_db_version:
+        type: str
+        default: latest
+        description:
+          - The tag to use for the MariaDB container image.
+  
+      semaphore_podman_user:
+        type: str
+        default: semaphore
+        description:
+          - The name of the user to run the Podman containers.
+  
+      semaphore_podman_group:
+        type: str
+        default: "{{ semaphore_podman_user }}"
+        description:
+          - The name of the primary group for the semaphore user.
+  
+      semaphore_podman_network:
+        type: str
+        default: semaphore
+        description:
+          - Name of the Podman network to use for Semaphore.
+
+      semaphore_podman_access_key_encryption:
+        type: str
+        required: true
+        description:
+          - Secret key used for encrypting access keys in database.
+
+      semaphore_podman_admin_email:
+        type: str
+        required: true
+        description:
+          - Email address for the Semaphore admin user.
+
+      semaphore_podman_admin_passwd:
+        type: str
+        required: true
+        description:
+          - Password for the Semaphore admin user.

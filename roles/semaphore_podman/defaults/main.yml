@@ -1,0 +1,8 @@
+---
+semaphore_podman_name: semaphore
+semaphore_podman_user: semaphore
+semaphore_podman_group: "{{ semaphore_podman_user }}"
+semaphore_podman_network: semaphore
+semaphore_podman_version: latest
+semaphore_podman_db_version: latest
+

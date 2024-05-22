@@ -1,0 +1,20 @@
+namespace: ahaydon
+name: semaphore
+version: 0.1.0
+readme: README.md
+authors:
+  - Adam Haydon (https://github.com/ahaydon)
+description: Collection of roles and playbooks for deploying Semaphore
+license_file: LICENSE
+tags:
+  - semaphore
+  - podman
+  - application
+  - linux
+dependencies:
+  "git+https://github.com/ahaydon/ansible-podman-collection.git": "master"
+repository: https://github.com/ahaydon/ansible-semaphore-collection
+documentation: https://github.com/ahaydon/ansible-semaphore-collection
+homepage: https://github.com/ahaydon/ansible-semaphore-collection
+issues: https://github.com/ahaydon/ansible-semaphore-collection/issues
+build_ignore: []
